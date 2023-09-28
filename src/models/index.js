@@ -8,9 +8,9 @@ const foodModel = require('./food/model.js');
 const userModel = require('../auth/models/users.js'); 
 const Collection = require('./data-collection.js');
 
-const DATABASE_URL = process.env.DATABASE_URL || 'sqlite:memory:';
-
-const sequelize = new Sequelize(DATABASE_URL);
+const sequelize = new Sequelize(process.env.DATABASE_URL || 'sqlite:memory:', {
+  dialect: 'postgres', 
+});
 const food = foodModel(sequelize, DataTypes);
 const clothes = clothesModel(sequelize, DataTypes);
 const users = userModel(sequelize, DataTypes);
