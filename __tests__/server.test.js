@@ -8,24 +8,20 @@ process.env.SECRET = "TEST_SECRET";
 const mockRequest = supertest(server);
 
 let userData = {
-  testUser: { username: 'user', password: 'password' },
+  testUser: { username: 'user', password: 'password'},
 };
 
 
-beforeAll(async () => {
-    await db.sync();
-  });
-  
-  afterAll(async () => {
-    const tableNames = await db.getQueryInterface().showAllTables();
-    if (tableNames.includes('your_table_name')) {
-      await db.drop();
-    }
-    await db.close();
-  });
-
 describe('Auth Router', () => {
-
+    beforeAll(async () => {
+        // Connect to the database and sync the models
+        await db.sync({ force: true }); // This will recreate the database tables
+      });
+    
+      afterAll(async () => {
+        // Close the database connection
+        await db.close();
+      });
   it('Can create a new user', async () => {
 
     const response = await mockRequest.post('/signup').send(userData.testUser);
