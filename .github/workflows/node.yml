@@ -23,5 +23,6 @@ jobs:
         npm i
         npm run build --if-present
         npm test
+        npm test -- --timeout=30000
       env:
         CI: true
