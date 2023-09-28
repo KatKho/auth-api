@@ -8,6 +8,7 @@ const errorHandler = require('./error-handlers/500.js');
 const logger = require('./middleware/logger.js');
 
 const v1Routes = require('./routes/v1.js');
+const v2Routes = require('./routes/v2.js');
 const authRoutes = require('./auth/routes.js');
 
 const app = express();
@@ -18,8 +19,9 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(logger);
 
-//routes from both servers
+
 app.use('/api/v1', v1Routes);
+app.use('/api/v2', v2Routes);
 app.use(authRoutes);
 
 app.use('*', notFoundHandler);
