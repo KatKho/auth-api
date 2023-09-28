@@ -21,7 +21,7 @@ describe('Auth Router', () => {
       afterAll(async () => {
         // Close the database connection
         await db.close();
-    }, 10000);
+    }, 20000);
   it('Can create a new user', async () => {
 
     const response = await mockRequest.post('/signup').send(userData.testUser);
