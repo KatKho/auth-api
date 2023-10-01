@@ -27,9 +27,15 @@ async function handleGetAll(req, res) {
 }
 
 async function handleGetOne(req, res) {
-  const id = req.params.id;
-  let theRecord = await req.model.get(id)
-  res.status(200).json(theRecord);
+  let id = req.params.id;
+  const item = await req.model.get(id);
+
+  if (!item) {
+    res.status(404).json({ error: 'Item not found' });
+    return;
+  }
+
+  res.status(200).json(item);
 }
 
 async function handleCreate(req, res) {
