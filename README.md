@@ -88,9 +88,9 @@ SECRET=secret_name
 
 - ![UML](./UML.png)
 - [Main branch](https://auth-api-262w.onrender.com)
-- [PR](https://github.com/KatKho/auth-api/pull/1)
-- [PR](https://github.com/KatKho/auth-api/pull/2)
-- [PR](https://github.com/KatKho/auth-api/pull/3)
+- [PR 1](https://github.com/KatKho/auth-api/pull/1)
+- [PR 2](https://github.com/KatKho/auth-api/pull/2)
+- [PR 3](https://github.com/KatKho/auth-api/pull/3)
 - [GitHub Actions](https://github.com/KatKho/auth-api/actions)
 
 ## Contributors
