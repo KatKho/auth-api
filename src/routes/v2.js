@@ -18,8 +18,11 @@ router.param('model', (req, res, next) => {
 //  Requires bearer token authentication
 router.use(authMiddleware);
 
-//  Requires authentication only
-router.get('/:model', handleGetAll);
+//  Requires bearer token and 'read' capability
+router.get('/:model', permissionsMiddleware('read'), handleGetAll);
+
+// Requires bearer token and 'create' capability
+router.get('/:model/:id', permissionsMiddleware('read'), handleGetOne);
 
 //  Requires bearer token and 'create' capability
 router.post('/:model', permissionsMiddleware('create'), handleCreate);
@@ -34,24 +37,36 @@ async function handleGetAll(req, res) {
     let allRecords = await req.model.get();
     res.status(200).json(allRecords);
   }
-  
-  async function handleCreate(req, res) {
-    let obj = req.body;
-    let newRecord = await req.model.create(obj);
-    res.status(201).json(newRecord);
-  }
-  
-  async function handleUpdate(req, res) {
-    const id = req.params.id;
-    const obj = req.body;
-    let updatedRecord = await req.model.update(id, obj)
-    res.status(200).json(updatedRecord);
-  }
-  
-  async function handleDelete(req, res) {
+
+  async function handleGetOne(req, res) {
     let id = req.params.id;
-    let deletedRecord = await req.model.delete(id);
-    res.status(200).json(deletedRecord);
+    const item = await req.model.get(id);
+  
+    if (!item) {
+      res.status(404).json({ error: 'Item not found' });
+      return;
+    }
+  
+    res.status(200).json(item);
   }
+  
+async function handleCreate(req, res) {
+  let obj = req.body;
+  let newRecord = await req.model.create(obj);
+  res.status(201).json(newRecord);
+}
+
+async function handleUpdate(req, res) {
+  const id = req.params.id;
+  const obj = req.body;
+  let updatedRecord = await req.model.update(id, obj)
+  res.status(200).json(updatedRecord);
+}
+
+async function handleDelete(req, res) {
+  let id = req.params.id;
+  let deletedRecord = await req.model.delete(id);
+  res.status(200).json(deletedRecord);
+}
 
 module.exports = router;

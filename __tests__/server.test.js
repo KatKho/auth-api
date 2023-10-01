@@ -3,21 +3,17 @@
 const request = require('supertest');
 const { server } = require('../src/server'); 
 const { db } = require('../src/models'); 
-// const { userModel } = require('../src/auth/models/users'); 
 
 let userData = {
-  testUser: { username: 'user', password: 'password' },
+  testUser: { username: 'user', password: 'password', role: 'admin' },
 };
+
+let authToken;
 
 describe('Authentication Routes Tests', () => {
   beforeAll(async () => {
     // Connect to the database and sync the models
     await db.sync({ force: true }); // This will recreate the database tables
-  });
-
-  afterAll(async () => {
-    // Close the database connection
-    await db.close();
   });
 
   it('Can create a new user', async () => {
@@ -28,6 +24,8 @@ describe('Authentication Routes Tests', () => {
     expect(userObject.token).toBeDefined();
     expect(userObject.user.id).toBeDefined();
     expect(userObject.user.username).toEqual(userData.testUser.username);
+
+    authToken = userObject.token;
   });
 
   it('Can signin with basic auth string', async () => {
@@ -43,8 +41,15 @@ describe('Authentication Routes Tests', () => {
     expect(userObject.user.username).toEqual(username);
   });
 
-  // Tests for V1 (Unauthenticated API) routes 
 
+  it('Can signin with bearer auth', async () => {
+    // Send a request to a protected endpoint 
+    const response = await request(server).get('/secret')
+        .set('Authorization', `Bearer ${authToken}`); 
+    expect(response.status).toBe(200);
+});
+
+  // Tests for V1 (Unauthenticated API) routes 
   it('POST /api/v1/:model adds an item to the DB and returns an object with the added item', async () => {
     const newItem = {
         name: 'Strawberry',
@@ -94,52 +99,37 @@ describe('Authentication Routes Tests', () => {
     const deleteResponse = await request(server).delete(`/api/v1/food/${itemId}`); 
     expect(deleteResponse.status).toBe(200);
 
+    const getResponse = await request(server)
+    .get(`/api/v2/food/${itemId}`)
+    .set('Authorization', `Bearer ${authToken}`);
 
-    const getResponse = await request(server).get(`/api/v1/food/${itemId}`); 
-
-    expect(getResponse.status).toBe(200); 
+    expect(getResponse.status).toBe(404);
   });
 });
 
 // Tests for V2 (Authenticated API) routes
-
 describe('V2 (Authenticated API) Routes Tests', () => {
-    let authToken; // Store the bearer token here
-    let testUsers = {
-        user: {
-            username: 'user',
-            password: 'password',
-            role: 'user',
-        },
-        writer: {
-            username: 'writer',
-            password: 'password',
-            role: 'writer',
-        },
-        editor: {
-            username: 'editor',
-            password: 'password',
-            role: 'editor',
-        },
-        admin: {
-            username: 'admin',
-            password: 'password',
-            role: 'admin',
-        },
-    };
+    let authToken; 
+    let testUser;
+    let createdItemId;
 
     beforeAll(async () => {
         // Create a new user and obtain the bearer token
+         await db.sync({ force: true });
         const userResponse = await request(server).post('/signup').send(userData.testUser);
-        testUser = userResponse.body.user; // Store the user object
-
+        testUser = userResponse.body.user; 
         // Authenticate the user and obtain the bearer token
         const authResponse = await request(server)
             .post('/signin')
-            .auth(userData.testUser.username, userData.testUser.password);
+            .auth(userData.testUser.username, userData.testUser.password );
 
         authToken = authResponse.body.token;
     });
+
+      afterAll(async () => {
+    // Close the database connection
+    await db.close();
+  });
 
     it('POST /api/v2/:model with a bearer token that has create permissions adds an item to the DB and returns an object with the added item', async () => {
         const newItem = {
@@ -148,8 +138,8 @@ describe('V2 (Authenticated API) Routes Tests', () => {
             type: 'fruit',
         };
 
-        const response = await request(server)
-            .post('/api/v2/Food')
+        const response = await request(server) 
+            .post('/api/v2/food')
             .set('Authorization', `Bearer ${authToken}`)
             .send(newItem);
 
@@ -159,7 +149,7 @@ describe('V2 (Authenticated API) Routes Tests', () => {
 
     it('GET /api/v2/:model with a bearer token that has read permissions returns a list of :model items', async () => {
         const response = await request(server)
-            .get('/api/v2/Food')
+            .get('/api/v2/food')
             .set('Authorization', `Bearer ${authToken}`);
 
         expect(response.status).toBe(200);
@@ -168,7 +158,7 @@ describe('V2 (Authenticated API) Routes Tests', () => {
     it('GET /api/v2/:model/ID with a bearer token that has read permissions returns a single item by ID', async () => {
         const itemId = 1;
         const response = await request(server)
-            .get(`/api/v2/Food/${itemId}`)
+            .get(`/api/v2/food/${itemId}`)
             .set('Authorization', `Bearer ${authToken}`);
 
         expect(response.status).toBe(200);
@@ -183,7 +173,7 @@ describe('V2 (Authenticated API) Routes Tests', () => {
         };
 
         const response = await request(server)
-            .put(`/api/v2/Food/${itemId}`)
+            .put(`/api/v2/food/${itemId}`)
             .set('Authorization', `Bearer ${authToken}`)
             .send(updatedItem);
 
@@ -194,15 +184,14 @@ describe('V2 (Authenticated API) Routes Tests', () => {
         const itemId = 1;
 
         const deleteResponse = await request(server)
-            .delete(`/api/v2/Food/${itemId}`)
+            .delete(`/api/v2/food/${itemId}`)
             .set('Authorization', `Bearer ${authToken}`);
 
         expect(deleteResponse.status).toBe(200);
 
         const getResponse = await request(server)
-            .get(`/api/v2/Food/${itemId}`)
+            .get(`/api/v2/food/${itemId}`)
             .set('Authorization', `Bearer ${authToken}`);
-
         expect(getResponse.status).toBe(404);
     });
 });
