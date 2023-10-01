@@ -90,6 +90,7 @@ SECRET=secret_name
 - [Main branch](https://auth-api-262w.onrender.com)
 - [PR](https://github.com/KatKho/auth-api/pull/1)
 - [PR](https://github.com/KatKho/auth-api/pull/2)
+- [PR](https://github.com/KatKho/auth-api/pull/3)
 - [GitHub Actions](https://github.com/KatKho/auth-api/actions)
 
 ## Contributors
